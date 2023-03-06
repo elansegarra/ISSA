@@ -1,0 +1,8 @@
+# project folders to ignore
+nbs
+tmp
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
