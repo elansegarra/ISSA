@@ -108,3 +108,79 @@ def test_oeis_functions():
     huh = get_oeis_sequence_integers('000109')
     huh10 = {k: huh[k] for k in list(huh.keys())[:10]}
     print(f"000109: {huh10}")
+
+
+def gen_square_spiral(height, width, num_points, num_spirals, 
+                      equi_type='revolution', spiral_type='linear'):
+    """ Generates a list of coordinates in the defined spiral
+    
+        Args:
+            height, weight, num_points, num_spirals: (int) self-explanatory
+            equi_type: (str) Either 'distant' (meaning points are equally 
+                spaced) or 'revolution' (meaning same number of points
+                in each revolution)
+            spiral_type: (str) Either 'linear' (revolutions shrinks by
+                same distance) or 'multiplicative' (revolutions shrink
+                by percentage).
+        returns: (list, list) = (x-coords, y-coords)
+    """
+    # Define the bounding box
+    bound_t =  height/2
+    bound_b = -height/2
+    bound_l = -width/2
+    bound_r =  width/2
+    
+    if equi_type == 'revolution':
+        spacing = 2*(height+width)*num_spirals/num_points
+    elif equi_type == 'distant':
+        raise NotImplementedError
+    else:
+        raiseNotImplementedError(f"Equi_type must be 'distant' or 'revolution', not '{requi_type}'")
+
+    # Calculating spiral step size so the spiral scale happens with one cirle
+    steps_in_revolution = 2*(height+width)/spacing
+
+    # Defining maps to dictate moves and direction changes
+    dir_map = {'u':np.array([0,  spacing]), 'd':np.array([0, -spacing]),
+               'l':np.array([-spacing, 0]), 'r':np.array([ spacing, 0])}
+    new_dir_map = {'u':'r','r':'d','d':'l','l':'u'}
+
+    # Create the vertices by adding step and changing direction when needed
+    curr_vert = np.array([bound_l,bound_b])
+    curr_dir = 'u'
+    vert_list = [curr_vert]
+    for i in range(num_points-1):
+        next_vert = curr_vert + dir_map[curr_dir]
+        in_bounds = ((next_vert[0] >= bound_l) & (next_vert[0] <= bound_r) & 
+                     (next_vert[1] >= bound_b) & (next_vert[1] <= bound_t))
+        if not in_bounds:
+            if curr_dir == 'u':
+                next_vert[0] = next_vert[0] + (next_vert[1]-bound_t)
+                next_vert[1] = bound_t
+            elif curr_dir == 'r':
+                next_vert[1] = next_vert[1] - (next_vert[0]-bound_r)
+                next_vert[0] = bound_r
+            elif curr_dir == 'd':
+                next_vert[0] = next_vert[0] - (bound_b-next_vert[1])
+                next_vert[1] = bound_b
+            elif curr_dir == 'l':
+                next_vert[1] = next_vert[1] + (bound_l-next_vert[0])
+                next_vert[0] = bound_l
+            curr_dir = new_dir_map[curr_dir]
+        vert_list.append(next_vert)
+        curr_vert = next_vert
+
+    # Handling the scaling to spiral inward
+    if spiral_type == "linear":
+        scale = np.linspace(1,0,num_points)
+    elif spiral_type == "multiplicative":
+        spiral_scale_step = 0.01**(1/num_points)
+        scale = spiral_scale_step**(np.linspace(0,num_points, num_points))
+    else:
+        raiseNotImplementedError(f"Equi_type must be 'linear' or 'multiplicative', not '{spiral_type}'")
+    # Applying the scaling to the points to create spiral
+    print(len(scale))
+    x_vals = list(zip(*vert_list))[0]*scale
+    y_vals = list(zip(*vert_list))[1]*scale
+
+    return x_vals, y_vals
