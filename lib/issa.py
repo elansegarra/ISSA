@@ -110,12 +110,12 @@ def test_oeis_functions():
     print(f"000109: {huh10}")
 
 
-def gen_square_spiral(height, width, num_points, num_spirals, 
+def gen_square_spiral(height, width, num_points, num_revolutions, 
                       equi_type='revolution', spiral_type='linear'):
     """ Generates a list of coordinates in the defined spiral
     
         Args:
-            height, weight, num_points, num_spirals: (int) self-explanatory
+            height, weight, num_points, num_revolutions: (int) self-explanatory
             equi_type: (str) Either 'distant' (meaning points are equally 
                 spaced) or 'revolution' (meaning same number of points
                 in each revolution)
@@ -131,7 +131,7 @@ def gen_square_spiral(height, width, num_points, num_spirals,
     bound_r =  width/2
     
     if equi_type == 'revolution':
-        spacing = 2*(height+width)*num_spirals/num_points
+        spacing = 2*(height+width)*num_revolutions/num_points
     elif equi_type == 'distant':
         raise NotImplementedError
     else:
@@ -179,8 +179,46 @@ def gen_square_spiral(height, width, num_points, num_spirals,
     else:
         raiseNotImplementedError(f"Equi_type must be 'linear' or 'multiplicative', not '{spiral_type}'")
     # Applying the scaling to the points to create spiral
-    print(len(scale))
     x_vals = list(zip(*vert_list))[0]*scale
     y_vals = list(zip(*vert_list))[1]*scale
+
+    return x_vals, y_vals
+
+def gen_spiral(height, width, num_points, num_revolutions, 
+                      equi_type='revolution', spiral_type='linear'):
+    """ Generates a list of coordinates in the defined spiral
+    
+        Args:
+            height, weight, num_points, num_revolutions: (int) self-explanatory
+            equi_type: (str) Either 'distant' (meaning points are equally 
+                spaced) or 'revolution' (meaning same number of points
+                in each revolution)
+            spiral_type: (str) Either 'linear' (revolutions shrinks by
+                same distance) or 'multiplicative' (revolutions shrink
+                by percentage).
+        returns: (list, list) = (x-coords, y-coords)
+    """
+
+    # Generate base set or vertices (all in a circle)
+    if equi_type == 'revolution':
+        t = np.linspace(180+360*num_revolutions,180,num_points)
+        x_vals = np.cos(np.radians(t))*width/2
+        y_vals = np.sin(np.radians(t))*height/2
+    elif equi_type == 'distant':
+        raise NotImplementedError
+    else:
+        raiseNotImplementedError(f"Equi_type must be 'distant' or 'revolution', not '{requi_type}'")
+    
+    # Handling the scaling to spiral inward
+    if spiral_type == "linear":
+        scale = np.linspace(1,0,num_points)
+    elif spiral_type == "multiplicative":
+        spiral_scale_step = 0.01**(1/num_points)
+        scale = spiral_scale_step**(np.linspace(0,num_points, num_points))
+    else:
+        raiseNotImplementedError(f"Equi_type must be 'linear' or 'multiplicative', not '{spiral_type}'")
+    # Applying the scaling to the points to create spiral
+    x_vals = x_vals*scale
+    y_vals = y_vals*scale
 
     return x_vals, y_vals
